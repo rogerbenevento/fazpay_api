@@ -1,0 +1,36 @@
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+version: '3.1'
+services:
+    mariadb:
+        container_name: fazpay-db
+        image: 'mariadb:11.0'
+        working_dir: /application
+        volumes:
+            - '.:/application'
+        environment:
+            - MYSQL_ROOT_PASSWORD=fazpay
+            - MYSQL_DATABASE=fazpay
+            - MYSQL_USER=fazpay
+            - MYSQL_PASSWORD=fazpay
+        ports:
+            - '46003:3306'
+
+    webserver:
+        container_name: fazpay-webserver
+        image: 'nginx:alpine'
+        working_dir: /application
+        volumes:
+            - '.:/application'
+            - './phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf'
+        ports:
+            - '8880:80'
+
+    php-fpm:
+        container_name: fazpay-php-fpm
+        build: phpdocker/php-fpm
+        working_dir: /application
+        volumes:
+            - '.:/application'
+            - './phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.3/fpm/conf.d/99-overrides.ini'
