@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Products\ProductStoreRequest;
 use App\Http\Requests\Products\ProductUpdateRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista de produtos.
+     *
+     * Lista os produtos de forma paginada, com filtro por nome, com o parametro via queryString:
+     * - search: string
      */
     public function index()
     {
@@ -22,47 +26,52 @@ class ProductsController extends Controller
 
         $products = $query->paginate(10);
 
-        return response()->json($products);
+        return response()->json(ProductResource::collection($products)->resource);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Adiciona um novo produto ao banco de dados.
+     *
+     * @param  \App\Http\Requests\Products\ProductStoreRequest  $request
      */
     public function store(ProductStoreRequest $request)
     {
         try {
             $product = Product::create($request->validated());
 
-            return response()->json($product, 201);
+            return response()->json(new ProductResource($product), 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Display the specified resource.
+     * Exibe um produto específico.
+     *
+     * @param  \App\Models\Product  $product
      */
     public function show(Product $product)
     {
-        return response()->json($product);
+        return response()->json(new ProductResource($product));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Atualiza um produto específico.
      */
     public function update(ProductUpdateRequest $request, Product $product)
     {
         try {
             $product->update($request->validated());
 
-            return response()->json($product);
+            return response()->json(new ProductResource($product));
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Exclui um produto específico.
+     *
      */
     public function destroy(Product $product)
     {

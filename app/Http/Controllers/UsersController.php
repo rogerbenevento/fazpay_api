@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Users\UserStoreRequest;
+use App\Http\Requests\Users\UserUpdateRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class UsersController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lista de usuários.
+     *
+     * Lista os usuários de forma paginada, com filtro por nome, com o parametro via queryString:
+     * - search: string
      */
     public function index()
     {
@@ -21,44 +26,56 @@ class UsersController extends Controller
 
         $users = $query->paginate(10);
 
-        return response()->json($users);
+        return response()->json(UserResource::collection($users)->resource);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Adiciona um novo usuário ao banco de dados.
      */
     public function store(UserStoreRequest $request)
     {
         try {
             $user = User::create($request->validated());
 
-            return response()->json($user, 201);
+            return response()->json(new UserResource($user), 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Display the specified resource.
+     * Exibe um usuário específico.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        //
+        return response()->json($user);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Atualiza um usuário específico.
      */
-    public function update(Request $request, string $id)
+    public function update(UserUpdateRequest $request, User $user)
     {
-        //
+        try {
+            $user->update($request->validated());
+
+            return response()->json(new UserResource($user));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove um usuário específico.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
-        //
+        try {
+            $user->delete();
+
+            return response()->json(['message' => 'Usuário removido com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }
